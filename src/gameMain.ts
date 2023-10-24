@@ -5,7 +5,6 @@ const p1H = 73;
 const p0H = 96;
 const pW = 96;
 
-
 export class GameMain extends Phaser.Scene {
   p0: Phaser.GameObjects.Sprite | null = null;
   p1: Phaser.GameObjects.Sprite | null = null;
@@ -16,6 +15,7 @@ export class GameMain extends Phaser.Scene {
   updateProc = this.rise;
   pointerdown = () => { console.log("zone-pd"); };
   pointerup = () => { console.log("zone-pu"); };
+  graphics: Phaser.GameObjects.Graphics | null = null;
   constructor() {
     super('GameMain');
   }
@@ -38,12 +38,10 @@ export class GameMain extends Phaser.Scene {
     zone.setInteractive();
     zone.on('pointerdown', () => { this.pointerdown(); });
     zone.on('pointerup', () => { this.pointerup(); });
+    this.graphics = this.add.graphics();
   }
   rise() {
-    const p0 = this.p0;
-    if (!p0) {
-      return;
-    }
+    const p0 = this.p0!;
     const x = Settings.bgSize.x / 2;
     const y = p0.y - 4;
     this.p0?.setPosition(x, y);
@@ -77,30 +75,36 @@ export class GameMain extends Phaser.Scene {
     this.p1?.setPosition(x, this.y1);
   }
   puBend() {
+    this.prepareJump();
+  }
+
+  bend() {
+    const p1 = this.p1!;
+    const br = p1.getBottomRight()!;
+    this.tick++;
+    const h = this.tick;
+    this.graphics?.fillStyle(0x800000, 1).fillRect(
+      br.x!, br.y! - h, 20, h);
+  }
+  prepareJump() {
+    this.graphics?.clear();
     this.updateProc = this.jump;
-    this.v = this.tick * -4;
+    this.v = this.tick * -2;
     this.pointerup = () => { };
     this.pointerdown = () => { };
-    this.p0?.setPosition(this.p0?.x, this.y0);
-    this.p1?.setVisible(false);
-    this.p0?.setVisible(true);
-  }
-  bend() {
-    this.tick++;
+    const p0 = this.p0!
+    const p1 = this.p1!
+    p0.setPosition(p0.x, this.y0);
+    p1.setVisible(false);
+    p0.setVisible(true);
   }
   puJump() {
-    const p0 = this.p0;
-    if (!p0) {
-      return;
-    }
+    const p0 = this.p0!;
     const y = p0.y;
-    this.p0?.setPosition(this.p0?.x, y);
+    p0.setPosition(p0.x, y);
   }
   jump() {
-    const p0 = this.p0;
-    if (!p0) {
-      return;
-    }
+    const p0 = this.p0!;
     const y = p0.y + this.v;
     if (this.y0 < y) {
       this.prepareStand();
