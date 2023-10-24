@@ -43,7 +43,7 @@ export class GameMain extends Phaser.Scene {
   rise() {
     const p0 = this.p0!;
     const y = p0.y - 4;
-    this.p0?.setPosition(this.px, y);
+    this.p0!.setPosition(this.px, y);
     if (y < this.y0) {
       this.prepareStand()
     }
@@ -52,9 +52,9 @@ export class GameMain extends Phaser.Scene {
     this.updateProc = this.stand;
     this.pointerdown = this.pdStand;
     this.pointerup = () => { };
-    this.p0?.setVisible(true);
-    this.p0?.setPosition(this.px, this.y0);
-    this.p1?.setVisible(false);
+    this.p0!.setVisible(true);
+    this.p0!.setPosition(this.px, this.y0);
+    this.p1!.setVisible(false);
   }
   pdStand() {
     this.prepareBend();
@@ -66,9 +66,9 @@ export class GameMain extends Phaser.Scene {
     this.updateProc = this.bend;
     this.pointerup = this.puBend;
     this.pointerdown = () => { };
-    this.p0?.setVisible(false);
-    this.p1?.setVisible(true);
-    this.p1?.setPosition(this.px, this.y1);
+    this.p0!.setVisible(false);
+    this.p1!.setVisible(true);
+    this.p1!.setPosition(this.px, this.y1);
   }
   puBend() {
     this.prepareJump();
@@ -79,11 +79,11 @@ export class GameMain extends Phaser.Scene {
     const br = p1.getBottomRight()!;
     this.tick++;
     const h = this.tick;
-    this.graphics?.fillStyle(0x800000, 1).fillRect(
+    this.graphics!.fillStyle(0x800000, 1).fillRect(
       br.x!, br.y! - h, 20, h);
   }
   prepareJump() {
-    this.graphics?.clear();
+    this.graphics!.clear();
     this.updateProc = this.jump;
     this.v = this.tick * -1;
     this.pointerup = () => { };
@@ -98,13 +98,28 @@ export class GameMain extends Phaser.Scene {
     const p0 = this.p0!;
     const y = p0.y + this.v;
     if (this.y0 < y) {
-      this.prepareStand();
+      this.prepareLand();
       return;
     }
-    this.p0?.setPosition(this.p0?.x, y);
+    this.p0!.setPosition(this.p0!.x, y);
     this.v += 5;
   }
   update() {
     this.updateProc();
+  }
+  prepareLand() {
+    this.pointerdown = () => { };
+    this.pointerup = () => { };
+    this.updateProc = this.land;
+    this.p0!.setVisible(false);
+    this.p1!.setVisible(true);
+    this.p1!.setPosition(this.px, this.y1);
+    this.tick = 0;
+  }
+  land() {
+    this.tick++;
+    if (3 < this.tick) {
+      this.prepareStand();
+    }
   }
 }
