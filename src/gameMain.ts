@@ -57,6 +57,8 @@ export class GameMain extends Phaser.Scene {
   pointerdown = () => { console.log("zone-pd"); };
   pointerup = () => { console.log("zone-pu"); };
   graphics: Phaser.GameObjects.Graphics | null = null;
+  jumpSE: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound | null = null;
+  throwSE: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound | null = null;
   constructor() {
     super('GameMain');
   }
@@ -64,6 +66,8 @@ export class GameMain extends Phaser.Scene {
     for (const n of ["game_bg", "earth", "p0", "p1", "p2", "stars", "taittsuu", "fail"]) {
       this.load.image(n, `assets/${n}.png`);
     }
+    this.load.audio("jump-se", "assets/jump-se.mp3");
+    this.load.audio("throw-se", "assets/throw-se.mp3");
   }
   restart() {
     for (const e of this.lives) {
@@ -107,6 +111,8 @@ export class GameMain extends Phaser.Scene {
     const attr = { fontFamily: 'monospace', fontSize: '40px' };
     this.scoreText = this.add.text(10, 100, "", attr);
     this.prepareStart();
+    this.jumpSE = this.sound.add("jump-se");
+    this.throwSE = this.sound.add("throw-se");
   }
   showP(ix: integer) {
     for (let i = 0; i < this.p.length; i++) {
@@ -178,6 +184,7 @@ export class GameMain extends Phaser.Scene {
     console.log(this.taObj);
     this.taProc = this.throwTa;
     this.ta!.visible = true;
+    this.throwSE?.play();
   }
   throwTa() {
     this.taObj.dev();
@@ -266,6 +273,8 @@ export class GameMain extends Phaser.Scene {
     const p0 = this.p[0];
     p0.setPosition(p0.x, this.y0);
     this.showP(0);
+    this.jumpSE?.play();
+
   }
   hit() {
     const p0 = this.p[0];
