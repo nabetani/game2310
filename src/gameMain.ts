@@ -89,7 +89,7 @@ export class GameMain extends Phaser.Scene {
   }
   prepareTa() {
     const y = 400;
-    this.taObj = new PhysObj(48, 300, 5, -10, gravity / 20);
+    this.taObj = new PhysObj(48, 300, 7, -7, gravity / 20);
     console.log(this.taObj);
     this.taProc = this.throwTa;
     this.ta!.visible = true;
