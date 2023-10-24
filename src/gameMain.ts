@@ -5,16 +5,17 @@ const p1H = 73;
 const p0H = 96;
 const pW = 96;
 
-enum Phase {
-  rising,
-  standing,
-}
 
 export class GameMain extends Phaser.Scene {
   p0: Phaser.GameObjects.Sprite | null = null;
   p1: Phaser.GameObjects.Sprite | null = null;
   tick: integer = 0;
-  phase: Phase = Phase.rising;
+  v: number = 0;
+  y0 = Settings.bgSize.y - earthH - p0H / 2;
+  y1 = Settings.bgSize.y - earthH - p1H / 2;
+  updateProc = this.rise;
+  pointerdown = () => { console.log("zone-pd"); };
+  pointerup = () => { console.log("zone-pu"); };
   constructor() {
     super('GameMain');
   }
@@ -27,32 +28,88 @@ export class GameMain extends Phaser.Scene {
     this.add.image(Settings.bgSize.x / 2, Settings.bgSize.y / 2, 'game_bg');
     let staticGroup = this.physics.add.staticGroup();
     let earth = staticGroup.create(Settings.bgSize.x / 2, Settings.bgSize.y - earthH / 2, 'earth');
-    let text = this
-      .add
-      .text(Settings.bgSize.x / 2, Settings.bgSize.y / 2, 'You are playing...', { fontFamily: 'arial', fontSize: '60px' })
-      .setOrigin(0.5);
     const x = Settings.bgSize.x / 2;
-    const y0 = Settings.bgSize.y + p0H / 2;
-    const y1 = Settings.bgSize.y + p1H / 2;
-    this.p0 = this.add.sprite(x, y0, "p0");
-    this.p1 = this.add.sprite(x, y1, "p1");
-    this.p1.active = false;
+    const py0 = Settings.bgSize.y + p0H / 2;
+    this.p0 = this.add.sprite(x, py0, "p0");
+    this.p1 = this.add.sprite(x, 0, "p1");
     this.p1.visible = false;
+    const { width, height } = this.game.canvas;
+    const zone = this.add.zone(width / 2, height / 2, width, height);
+    zone.setInteractive();
+    zone.on('pointerdown', () => { this.pointerdown(); });
+    zone.on('pointerup', () => { this.pointerup(); });
   }
   rise() {
+    const p0 = this.p0;
+    if (!p0) {
+      return;
+    }
     const x = Settings.bgSize.x / 2;
-    const y0 = Settings.bgSize.y + p0H / 2 - this.tick * 4;
-    this.p0?.setPosition(x, y0);
-    this.tick++;
-    if (y0 < Settings.bgSize.y - earthH - p0H / 2) {
-      this.phase = Phase.standing;
+    const y = p0.y - 4;
+    this.p0?.setPosition(x, y);
+    if (y < this.y0) {
+      this.prepareStand()
     }
   }
-  update() {
-    switch (this.phase) {
-      case Phase.rising:
-        return this.rise();
-
+  prepareStand() {
+    this.updateProc = this.stand;
+    this.pointerdown = this.pdStand;
+    this.pointerup = () => { };
+    const x = Settings.bgSize.x / 2;
+    console.log(this.p0, x, this.y0);
+    this.p0?.setVisible(true);
+    this.p0?.setPosition(x, this.y0);
+    this.p1?.setVisible(false);
+  }
+  pdStand() {
+    this.prepareBend();
+  }
+  stand() {
+  }
+  prepareBend() {
+    this.tick = 0;
+    this.updateProc = this.bend;
+    this.pointerup = this.puBend;
+    this.pointerdown = () => { };
+    const x = Settings.bgSize.x / 2;
+    this.p0?.setVisible(false);
+    this.p1?.setVisible(true);
+    this.p1?.setPosition(x, this.y1);
+  }
+  puBend() {
+    this.updateProc = this.jump;
+    this.v = this.tick * -4;
+    this.pointerup = () => { };
+    this.pointerdown = () => { };
+    this.p0?.setPosition(this.p0?.x, this.y0);
+    this.p1?.setVisible(false);
+    this.p0?.setVisible(true);
+  }
+  bend() {
+    this.tick++;
+  }
+  puJump() {
+    const p0 = this.p0;
+    if (!p0) {
+      return;
     }
+    const y = p0.y;
+    this.p0?.setPosition(this.p0?.x, y);
+  }
+  jump() {
+    const p0 = this.p0;
+    if (!p0) {
+      return;
+    }
+    const y = p0.y + this.v;
+    if (this.y0 < y) {
+      this.prepareStand();
+      return;
+    }
+    this.p0?.setPosition(this.p0?.x, y);
+    this.v += 10;
+  }
+  update() {
+    this.updateProc();
   }
 }
