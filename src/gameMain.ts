@@ -17,6 +17,8 @@ class PhysObj {
   pos: Vector2;
   velo: Vector2;
   dvy: number
+  score: number = 0;
+  missCount: number = 0;
   constructor(x: number, y: number, vx: number, vy: number, dvy: number) {
     this.pos = Vec2(x, y);
     console.log({ pos: this.pos, x: x, y: y });
@@ -31,8 +33,7 @@ class PhysObj {
 };
 
 export class GameMain extends Phaser.Scene {
-  p0: Phaser.GameObjects.Sprite | null = null;
-  p1: Phaser.GameObjects.Sprite | null = null;
+  p: Phaser.GameObjects.Sprite[] = [];
   ta: Phaser.GameObjects.Sprite | null = null;
   tick: integer = 0;
   v: number = 0;
@@ -49,7 +50,7 @@ export class GameMain extends Phaser.Scene {
     super('GameMain');
   }
   preload() {
-    for (const n of ["game_bg", "earth", "p0", "p1", "taittsuu"]) {
+    for (const n of ["game_bg", "earth", "p0", "p1", "p1", "stars", "taittsuu"]) {
       this.load.image(n, `assets/${n}.png`);
     }
   }
@@ -58,11 +59,13 @@ export class GameMain extends Phaser.Scene {
     let staticGroup = this.physics.add.staticGroup();
     staticGroup.create(Settings.bgSize.x / 2, Settings.bgSize.y - earthH / 2, 'earth');
     const py0 = Settings.bgSize.y + p0H / 2;
-    this.p0 = this.add.sprite(this.px, py0, "p0");
-    this.p1 = this.add.sprite(this.px, 0, "p1");
-    this.p1.visible = false;
+    this.p = ["0", "1", "2"].map(e => this.add.sprite(this.px, 0, `p${e}`))
+    for (const p of this.p) {
+      p.visible = false;
+    }
     this.ta = this.add.sprite(-100, -100, "taittsuu");
     this.ta.visible = false;
+
     const { width, height } = this.game.canvas;
     const zone = this.add.zone(width / 2, height / 2, width, height);
     zone.setInteractive();
@@ -70,18 +73,22 @@ export class GameMain extends Phaser.Scene {
     zone.on('pointerup', () => { this.pointerup(); });
     this.graphics = this.add.graphics();
   }
+  showP(ix: integer) {
+    for (let i = 0; i < this.p.length; i++) {
+      this.p[i].setVisible(i == ix);
+    }
+  }
   prepareRise() {
-    this.p0!.visible = true;
-    this.p1!.visible = false;
+    this.showP(0);
     this.ta!.visible = false;
     const py0 = Settings.bgSize.y + p0H / 2;
-    this.p0!.setPosition(this.px, py0);
+    this.p[0].setPosition(this.px, py0);
     this.playerProc = this.rise;
   }
   rise() {
-    const p0 = this.p0!;
+    const p0 = this.p[0];
     const y = p0.y - 4;
-    this.p0!.setPosition(this.px, y);
+    p0.setPosition(this.px, y);
     if (y < this.y0) {
       this.prepareStand();
       this.prepareTa();
@@ -102,9 +109,9 @@ export class GameMain extends Phaser.Scene {
     this.playerProc = this.stand;
     this.pointerdown = this.pdStand;
     this.pointerup = () => { };
-    this.p0!.setVisible(true);
-    this.p0!.setPosition(this.px, this.y0);
-    this.p1!.setVisible(false);
+    const p0 = this.p[0];
+    p0.setPosition(this.px, this.y0);
+    this.showP(0);
   }
   pdStand() {
     this.prepareBend();
@@ -116,16 +123,16 @@ export class GameMain extends Phaser.Scene {
     this.playerProc = this.bend;
     this.pointerup = this.puBend;
     this.pointerdown = () => { };
-    this.p0!.setVisible(false);
-    this.p1!.setVisible(true);
-    this.p1!.setPosition(this.px, this.y1);
+    const p1 = this.p[1];
+    p1.setPosition(this.px, this.y1);
+    this.showP(1);
   }
   puBend() {
     this.prepareJump();
   }
 
   bend() {
-    const p1 = this.p1!;
+    const p1 = this.p[1];
     const br = p1.getBottomRight()!;
     this.tick++;
     const h = this.tick * 5;
@@ -138,26 +145,25 @@ export class GameMain extends Phaser.Scene {
     this.v = this.tick * -3;
     this.pointerup = () => { };
     this.pointerdown = () => { };
-    const p0 = this.p0!
-    const p1 = this.p1!
+    const p0 = this.p[0];
     p0.setPosition(p0.x, this.y0);
-    p1.setVisible(false);
-    p0.setVisible(true);
+    this.showP(0);
   }
   hit() {
-    const dx = this.p0!.x - this.ta!.x;
-    const dy = this.p0!.y - this.ta!.y;
+    const p0 = this.p[0];
+    const dx = p0.x - this.ta!.x;
+    const dy = p0.y - this.ta!.y;
     const d = 70;
     return dx * dx + dy * dy < d * d;
   }
   jump() {
-    const p0 = this.p0!;
+    const p0 = this.p[0];
     const y = p0.y + this.v;
     if (this.y0 < y) {
       this.prepareLand();
       return;
     }
-    this.p0!.setPosition(this.p0!.x, y);
+    p0.setPosition(p0.x, y);
     this.v += gravity;
     if (0 < this.v && this.hit()) {
       this.prepareRise();
@@ -171,9 +177,10 @@ export class GameMain extends Phaser.Scene {
     this.pointerdown = () => { };
     this.pointerup = () => { };
     this.playerProc = this.land;
-    this.p0!.setVisible(false);
-    this.p1!.setVisible(true);
-    this.p1!.setPosition(this.px, this.y1);
+    this.showP(1)
+    const p1 = this.p[1];
+    p1.setVisible(true);
+    p1.setPosition(this.px, this.y1);
     this.tick = 0;
   }
   land() {
