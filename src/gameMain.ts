@@ -17,8 +17,6 @@ class PhysObj {
   pos: Vector2;
   velo: Vector2;
   dvy: number
-  score: number = 0;
-  missCount: number = 0;
   constructor(x: number, y: number, vx: number, vy: number, dvy: number) {
     this.pos = Vec2(x, y);
     console.log({ pos: this.pos, x: x, y: y });
@@ -34,6 +32,7 @@ class PhysObj {
 
 export class GameMain extends Phaser.Scene {
   p: Phaser.GameObjects.Sprite[] = [];
+  lives: Phaser.GameObjects.Sprite[] = [];
   ta: Phaser.GameObjects.Sprite | null = null;
   stars: Phaser.GameObjects.Sprite | null = null;
   tick: integer = 0;
@@ -41,7 +40,10 @@ export class GameMain extends Phaser.Scene {
   px = Settings.bgSize.x * 0.8;
   y0 = Settings.bgSize.y - earthH - p0H / 2;
   y1 = Settings.bgSize.y - earthH - p1H / 2;
-  playerProc = this.rise;
+  score: number = 0;
+  scoreText: Phaser.GameObjects.Text | null = null;
+  failCount: number = 0;
+  playerProc = () => { };
   taProc = () => { };
   taObj: PhysObj = new PhysObj(0, 0, 0, 0, gravity / 2);
   pointerdown = () => { console.log("zone-pd"); };
@@ -51,9 +53,28 @@ export class GameMain extends Phaser.Scene {
     super('GameMain');
   }
   preload() {
-    for (const n of ["game_bg", "earth", "p0", "p1", "p2", "stars", "taittsuu"]) {
+    for (const n of ["game_bg", "earth", "p0", "p1", "p2", "stars", "taittsuu", "fail"]) {
       this.load.image(n, `assets/${n}.png`);
     }
+  }
+  restart() {
+    for (const e of this.lives) {
+      e.destroy();
+    }
+    this.lives = [];
+    this.prepareStart()
+  }
+  prepareStart() {
+    this.score = 0;
+    this.failCount = 0;
+    this.scoreText!.setText("");
+
+    this.stars!.visible = false;
+    for (let i = 0; i < 3; i++) {
+      this.lives.push(this.add.sprite((i + 0.5) * 80, 40, "taittsuu"));
+    }
+    this.ta!.visible = false;
+    this.playerProc = this.rise;
   }
   create() {
     this.add.image(Settings.bgSize.x / 2, Settings.bgSize.y / 2, 'game_bg');
@@ -61,15 +82,12 @@ export class GameMain extends Phaser.Scene {
     staticGroup.create(Settings.bgSize.x / 2, Settings.bgSize.y - earthH / 2, 'earth');
 
     this.stars = this.add.sprite(-100, -100, "stars");
-    this.stars.visible = false;
-
     const py0 = Settings.bgSize.y + p0H / 2;
     this.p = ["0", "1", "2"].map(e => this.add.sprite(this.px, 0, `p${e}`))
     for (const p of this.p) {
       p.visible = false;
     }
     this.ta = this.add.sprite(-100, -100, "taittsuu");
-    this.ta.visible = false;
 
     const { width, height } = this.game.canvas;
     const zone = this.add.zone(width / 2, height / 2, width, height);
@@ -77,6 +95,10 @@ export class GameMain extends Phaser.Scene {
     zone.on('pointerdown', () => { this.pointerdown(); });
     zone.on('pointerup', () => { this.pointerup(); });
     this.graphics = this.add.graphics();
+
+    const attr = { fontFamily: 'monospace', fontSize: '40px' };
+    this.scoreText = this.add.text(10, 100, "", attr);
+    this.prepareStart();
   }
   showP(ix: integer) {
     for (let i = 0; i < this.p.length; i++) {
@@ -110,9 +132,46 @@ export class GameMain extends Phaser.Scene {
     this.taObj.dev();
     const ta = this.ta!
     ta.setPosition(this.taObj.pos.x, this.taObj.pos.y);
-    if (Settings.bgSize.x < ta.x + pW) {
-      this.prepareTa();
+    if (Settings.bgSize.x < ta.x - pW) {
+      const old = this.lives[this.failCount]
+      this.lives[this.failCount] = this.add.sprite(old.x, old.y, "fail");
+      old.destroy();
+      this.failCount++;
+      if (this.lives.length <= this.failCount) {
+        this.prepareGaveOver();
+      } else {
+        this.prepareTa();
+      }
     }
+  }
+  prepareGaveOver() {
+    this.tick = 0;
+    this.pointerdown = () => { };
+    this.pointerup = () => { };
+    this.taProc = () => { };
+    const msg = 'Game Over';
+    const attr = { fontFamily: 'arial', fontSize: '60px' };
+    let gameOverText = this.add
+      .text(Settings.bgSize.x / 2, Settings.bgSize.y / 2, msg, attr)
+      .setOrigin(0.5);
+    this.playerProc = () => {
+      if (60 < this.tick) {
+        this.prepareRepayPrompt(gameOverText);
+      }
+    }
+  }
+  prepareRepayPrompt(gameOverText: Phaser.GameObjects.Text) {
+    const msg = 'Click here to replay';
+    const attr = { fontFamily: 'arial', fontSize: '40px' };
+    this.playerProc = () => { };
+    let replayText = this.add
+      .text(Settings.bgSize.x / 2, Settings.bgSize.y / 2 + 100, msg, attr)
+      .setOrigin(0.5);
+    this.pointerdown = () => {
+      replayText.destroy();
+      gameOverText.destroy();
+      this.restart();
+    };
   }
   prepareStand() {
     this.playerProc = this.stand;
@@ -174,6 +233,8 @@ export class GameMain extends Phaser.Scene {
     p0.setPosition(p0.x, y);
     this.v += gravity;
     if (0 < this.v && this.hit()) {
+      this.score++;
+      this.scoreText!.setText(`${this.score} タイツ`);
       this.prepareWare();
     }
   }
