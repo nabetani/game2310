@@ -11,7 +11,7 @@ const config: Phaser.Types.Core.GameConfig = {
   parent: 'game-app',
   scene: [Wating, GameMain],
   fps: {
-    target: 24,
+    target: 60,
     forceSetTimeOut: true
   },
   physics: {
