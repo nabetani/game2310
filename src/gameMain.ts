@@ -56,7 +56,7 @@ export class GameMain extends Phaser.Scene {
   create() {
     this.add.image(Settings.bgSize.x / 2, Settings.bgSize.y / 2, 'game_bg');
     let staticGroup = this.physics.add.staticGroup();
-    let earth = staticGroup.create(Settings.bgSize.x / 2, Settings.bgSize.y - earthH / 2, 'earth');
+    staticGroup.create(Settings.bgSize.x / 2, Settings.bgSize.y - earthH / 2, 'earth');
     const py0 = Settings.bgSize.y + p0H / 2;
     this.p0 = this.add.sprite(this.px, py0, "p0");
     this.p1 = this.add.sprite(this.px, 0, "p1");
@@ -69,6 +69,14 @@ export class GameMain extends Phaser.Scene {
     zone.on('pointerdown', () => { this.pointerdown(); });
     zone.on('pointerup', () => { this.pointerup(); });
     this.graphics = this.add.graphics();
+  }
+  prepareRise() {
+    this.p0!.visible = true;
+    this.p1!.visible = false;
+    this.ta!.visible = false;
+    const py0 = Settings.bgSize.y + p0H / 2;
+    this.p0!.setPosition(this.px, py0);
+    this.playerProc = this.rise;
   }
   rise() {
     const p0 = this.p0!;
@@ -136,6 +144,12 @@ export class GameMain extends Phaser.Scene {
     p1.setVisible(false);
     p0.setVisible(true);
   }
+  hit() {
+    const dx = this.p0!.x - this.ta!.x;
+    const dy = this.p0!.y - this.ta!.y;
+    const d = 70;
+    return dx * dx + dy * dy < d * d;
+  }
   jump() {
     const p0 = this.p0!;
     const y = p0.y + this.v;
@@ -145,6 +159,9 @@ export class GameMain extends Phaser.Scene {
     }
     this.p0!.setPosition(this.p0!.x, y);
     this.v += gravity;
+    if (0 < this.v && this.hit()) {
+      this.prepareRise();
+    }
   }
   update() {
     this.playerProc();
