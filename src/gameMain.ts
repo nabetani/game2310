@@ -108,7 +108,11 @@ export class GameMain extends Phaser.Scene {
   }
   throwTa() {
     this.taObj.dev();
-    this.ta!.setPosition(this.taObj.pos.x, this.taObj.pos.y);
+    const ta = this.ta!
+    ta.setPosition(this.taObj.pos.x, this.taObj.pos.y);
+    if (Settings.bgSize.x < ta.x + pW) {
+      this.prepareTa();
+    }
   }
   prepareStand() {
     this.playerProc = this.stand;
@@ -174,6 +178,7 @@ export class GameMain extends Phaser.Scene {
     }
   }
   prepareWare() {
+    this.taProc = () => { };
     const x = this.p[0].x;
     const y = this.p[0].y;
     this.p[2].setPosition(x, y);
