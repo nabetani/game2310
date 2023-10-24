@@ -139,7 +139,6 @@ export class GameMain extends Phaser.Scene {
   bend() {
     const p1 = this.p[1];
     const br = p1.getBottomRight()!;
-    this.tick++;
     const h = this.tick * 5;
     this.graphics!.fillStyle(0x800000, 1).fillRect(
       br.x!, br.y! - h, 20, h);
@@ -183,13 +182,28 @@ export class GameMain extends Phaser.Scene {
     stars.visible = true;
     this.ta!.visible = false
     this.showP(2);
-    this.playerProc = () => { };
+    this.tick = 0;
+    this.playerProc = this.ware;
     this.pointerup = () => { };
     this.pointerdown = () => { };
+  }
+  ware() {
+    const stars = this.stars!
+    if (this.tick < 40) {
+      stars.setVisible(this.tick % 8 < 4);
+    } else {
+      stars.setVisible(false);
+      const p2 = this.p[2];
+      p2.y -= 20;
+      if (p2.y < -50) {
+        this.prepareRise();
+      }
+    }
   }
   update() {
     this.playerProc();
     this.taProc();
+    this.tick++;
   }
   prepareLand() {
     this.pointerdown = () => { };
@@ -202,7 +216,6 @@ export class GameMain extends Phaser.Scene {
     this.tick = 0;
   }
   land() {
-    this.tick++;
     if (3 < this.tick) {
       this.prepareStand();
     }
