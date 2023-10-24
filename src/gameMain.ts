@@ -13,6 +13,14 @@ const Vec2 = (x: number, y: number): Vector2 => {
   return r;
 }
 
+const popCount = (x: integer): integer => {
+  let r = 0;
+  for (let i = x; i != 0; i = (i >> 1)) {
+    r += (i & 1);
+  }
+  return r;
+};
+
 class PhysObj {
   pos: Vector2;
   velo: Vector2;
@@ -121,9 +129,52 @@ export class GameMain extends Phaser.Scene {
       this.prepareTa();
     }
   }
+  taprop(): { y: number, vx: number, vy: number } {
+    if (this.score < 5) {
+      return { y: 300, vx: 7, vy: -7 };
+    } else if (this.score < 10) {
+      return { y: 500, vx: 7, vy: -9 };
+    } else if (this.score < 15) {
+      return { y: 500, vx: 8, vy: -10 };
+    } else if (this.score < 25) {
+      if (this.score % 2 == 0) {
+        return { y: 100, vx: 10, vy: 0 };
+      } else {
+        return { y: 500, vx: 6, vy: -12 };
+      }
+    } else if (this.score < 35) {
+      if (this.score % 3 == 0) {
+        return { y: 100, vx: 12, vy: 0 };
+      } else {
+        return { y: 500, vx: 4, vy: -14 };
+      }
+    } else if (this.score < 50) {
+      return { y: 100, vx: 6 + (this.score) * 11 % 7, vy: -5 };
+    } else {
+      switch (popCount(this.score)) {
+        default:
+          return { y: 500, vx: 6, vy: -12 };
+        case 1:
+          return { y: 100, vx: 6 + 6, vy: 3 };
+        case 2:
+          return { y: 500, vx: 4, vy: -14 };
+        case 3:
+          return { y: 100, vx: 16, vy: 5 };
+        case 4:
+          return { y: 100, vx: 12, vy: 0 };
+        case 5:
+          return { y: 100, vx: 12, vy: 4 };
+        case 6:
+          return { y: 100, vx: 10, vy: 0 };
+        case 7:
+          return { y: 500, vx: 8, vy: -10 };
+      }
+    }
+  }
+
   prepareTa() {
-    const y = 400;
-    this.taObj = new PhysObj(48, 300, 7, -7, gravity / 20);
+    const tap = this.taprop()
+    this.taObj = new PhysObj(48, tap.y, tap.vx, tap.vy, gravity / 20);
     console.log(this.taObj);
     this.taProc = this.throwTa;
     this.ta!.visible = true;
