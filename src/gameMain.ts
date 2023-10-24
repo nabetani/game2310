@@ -35,6 +35,7 @@ class PhysObj {
 export class GameMain extends Phaser.Scene {
   p: Phaser.GameObjects.Sprite[] = [];
   ta: Phaser.GameObjects.Sprite | null = null;
+  stars: Phaser.GameObjects.Sprite | null = null;
   tick: integer = 0;
   v: number = 0;
   px = Settings.bgSize.x * 0.8;
@@ -50,7 +51,7 @@ export class GameMain extends Phaser.Scene {
     super('GameMain');
   }
   preload() {
-    for (const n of ["game_bg", "earth", "p0", "p1", "p1", "stars", "taittsuu"]) {
+    for (const n of ["game_bg", "earth", "p0", "p1", "p2", "stars", "taittsuu"]) {
       this.load.image(n, `assets/${n}.png`);
     }
   }
@@ -58,6 +59,10 @@ export class GameMain extends Phaser.Scene {
     this.add.image(Settings.bgSize.x / 2, Settings.bgSize.y / 2, 'game_bg');
     let staticGroup = this.physics.add.staticGroup();
     staticGroup.create(Settings.bgSize.x / 2, Settings.bgSize.y - earthH / 2, 'earth');
+
+    this.stars = this.add.sprite(-100, -100, "stars");
+    this.stars.visible = false;
+
     const py0 = Settings.bgSize.y + p0H / 2;
     this.p = ["0", "1", "2"].map(e => this.add.sprite(this.px, 0, `p${e}`))
     for (const p of this.p) {
@@ -166,8 +171,21 @@ export class GameMain extends Phaser.Scene {
     p0.setPosition(p0.x, y);
     this.v += gravity;
     if (0 < this.v && this.hit()) {
-      this.prepareRise();
+      this.prepareWare();
     }
+  }
+  prepareWare() {
+    const x = this.p[0].x;
+    const y = this.p[0].y;
+    this.p[2].setPosition(x, y);
+    const stars = this.stars!
+    stars.setPosition(x, y);
+    stars.visible = true;
+    this.ta!.visible = false
+    this.showP(2);
+    this.playerProc = () => { };
+    this.pointerup = () => { };
+    this.pointerdown = () => { };
   }
   update() {
     this.playerProc();
