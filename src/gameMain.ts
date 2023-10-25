@@ -145,43 +145,25 @@ export class GameMain extends Phaser.Scene {
   }
   taprop(): { y: number, vx: number, vy: number } {
     if (this.score < 5) {
-      return { y: 300, vx: 7, vy: -7 };
-    } else if (this.score < 10) {
-      return { y: 500, vx: 7, vy: -9 };
-    } else if (this.score < 15) {
-      return { y: 500, vx: 8, vy: -10 };
-    } else if (this.score < 25) {
-      if (this.score % 2 == 0) {
-        return { y: 100, vx: 10, vy: 0 };
-      } else {
-        return { y: 500, vx: 6, vy: -12 };
-      }
-    } else if (this.score < 35) {
-      if (this.score % 3 == 0) {
-        return { y: 100, vx: 12, vy: 0 };
-      } else {
-        return { y: 500, vx: 4, vy: -14 };
-      }
-    } else if (this.score < 50) {
-      return { y: 100, vx: 6 + (this.score) * 11 % 7, vy: -5 };
+      return { y: 300, vx: 6 + this.score / 2.0, vy: -7 };
     } else {
-      switch (popCount(this.score)) {
+      switch (popCount(this.score) + this.score % 5) {
         default:
-          return { y: 500, vx: 6, vy: -12 };
-        case 1:
-          return { y: 100, vx: 6 + 6, vy: 3 };
+          return { y: 100, vx: 15, vy: 5 };
         case 2:
-          return { y: 500, vx: 4, vy: -14 };
+          return { y: 500, vx: 4, vy: -12 };
         case 3:
-          return { y: 100, vx: 16, vy: 5 };
+          return { y: 500, vx: 6, vy: -12 };
         case 4:
-          return { y: 100, vx: 12, vy: 0 };
-        case 5:
-          return { y: 100, vx: 12, vy: 4 };
-        case 6:
-          return { y: 100, vx: 10, vy: 0 };
-        case 7:
           return { y: 500, vx: 8, vy: -10 };
+        case 5:
+          return { y: 100, vx: 10, vy: 0 };
+        case 6:
+          return { y: 100, vx: 12, vy: 0 };
+        case 7:
+          return { y: 100, vx: 13, vy: 3 };
+        case 8:
+          return { y: 100, vx: 14, vy: 4 };
       }
     }
   }
