@@ -21,17 +21,23 @@ export class Wating extends Phaser.Scene {
     this.add.image(Settings.bgSize.x / 2, Settings.bgSize.y / 2, 'bg');
     const msg = 'Click here to start game.';
     const attr = { fontFamily: 'arial', fontSize: '60px' };
+    this.addText(
+      'Jump Down into TIGHTS',
+      Settings.bgSize.x / 2, Settings.bgSize.y * 0.5, 0.5,
+      '60px');
+
+    const bottomFont = "30px";
     const startText = this.addText(
       'Click here to start game.',
-      Settings.bgSize.x / 2, Settings.bgSize.y / 2, 0.5,
-      '60px');
+      Settings.bgSize.x / 2, Settings.bgSize.y * 0.8, 0.5,
+      bottomFont);
     startText.on('pointerdown', () => {
       this.scene.start('GameMain');
     });
     const showRuleJ = this.addText(
       '遊び方',
-      50, Settings.bgSize.y * 0.75, 0,
-      '40px');
+      50, Settings.bgSize.y * 0.7, 0,
+      bottomFont);
     const rules = [
       "押している間はジャンプ力をためます。\n離すとジャンプ。\n落下中にタイツに触れてください。",
       "Press to charge the power to jump.\nRelease to jump.\nTouch the tights while falling."
@@ -39,7 +45,7 @@ export class Wating extends Phaser.Scene {
       const r = this.addText(
         e,
         Settings.bgSize.x / 2, Settings.bgSize.y * 0.2, 0.5,
-        '30px')
+        "30px")
       r.setVisible(false);
       return r;
     });
@@ -50,8 +56,8 @@ export class Wating extends Phaser.Scene {
     });
     const showRuleE = this.addText(
       'How to play',
-      Settings.bgSize.x - 50, Settings.bgSize.y * 0.75, 1,
-      '40px');
+      Settings.bgSize.x - 50, Settings.bgSize.y * 0.7, 1,
+      bottomFont);
     showRuleE.on('pointerdown', () => {
       rules[0].setVisible(false);
       rules[1].setVisible(true);
