@@ -216,6 +216,7 @@ export class GameMain extends Phaser.Scene {
     this.pointerdown = () => { };
     this.pointerup = () => { };
     this.taProc = () => { };
+    this.graphics!.clear();
     const msg = 'Game Over';
     const attr = { fontFamily: 'arial', fontSize: '60px' };
     let gameOverText = this.add
