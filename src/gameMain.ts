@@ -8,7 +8,6 @@ const gravity = 3;
 
 type Vector2 = Phaser.Math.Vector2;
 const Vec2 = (x: number, y: number): Vector2 => {
-  console.log(x, y, new Phaser.Math.Vector2(x, y));
   const r = new Phaser.Math.Vector2(x, y);
   return r;
 }
@@ -29,9 +28,7 @@ class PhysObj {
   dvy: number
   constructor(x: number, y: number, vx: number, vy: number, dvy: number) {
     this.pos = Vec2(x, y);
-    console.log({ pos: this.pos, x: x, y: y });
     this.velo = Vec2(vx, vy);
-    console.log({ velo: this.velo, vx: vx, vy: y });
     this.dvy = dvy;
   }
   dev() {
@@ -56,8 +53,8 @@ export class GameMain extends Phaser.Scene {
   playerProc = () => { };
   taProc = () => { };
   taObj: PhysObj = new PhysObj(0, 0, 0, 0, gravity / 2);
-  pointerdown = () => { console.log("zone-pd"); };
-  pointerup = () => { console.log("zone-pu"); };
+  pointerdown = () => { };
+  pointerup = () => { };
   graphics: Phaser.GameObjects.Graphics | null = null;
   jumpSE: Audio | null = null;
   throwSE: Audio | null = null;
@@ -171,7 +168,6 @@ export class GameMain extends Phaser.Scene {
   prepareTa() {
     const tap = this.taprop()
     this.taObj = new PhysObj(48, tap.y, tap.vx, tap.vy, gravity / 20);
-    console.log(this.taObj);
     this.taProc = this.throwTa;
     this.ta!.visible = true;
     this.throwSE?.play();
@@ -211,7 +207,7 @@ export class GameMain extends Phaser.Scene {
     }
   }
   prepareRepayPrompt(gameOverText: Phaser.GameObjects.Text) {
-    const msg = 'Click here to replay';
+    const msg = 'Click to try again.';
     const attr = { fontFamily: 'arial', fontSize: '40px' };
     this.playerProc = () => { };
     let replayText = this.add
