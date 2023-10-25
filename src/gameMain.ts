@@ -13,6 +13,8 @@ const Vec2 = (x: number, y: number): Vector2 => {
   return r;
 }
 
+type Audio = Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+
 const popCount = (x: integer): integer => {
   let r = 0;
   for (let i = x; i != 0; i = (i >> 1)) {
@@ -57,8 +59,10 @@ export class GameMain extends Phaser.Scene {
   pointerdown = () => { console.log("zone-pd"); };
   pointerup = () => { console.log("zone-pu"); };
   graphics: Phaser.GameObjects.Graphics | null = null;
-  jumpSE: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound | null = null;
-  throwSE: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound | null = null;
+  jumpSE: Audio | null = null;
+  throwSE: Audio | null = null;
+  getSE: Audio | null = null;
+  failSE: Audio | null = null;
   constructor() {
     super('GameMain');
   }
@@ -68,6 +72,8 @@ export class GameMain extends Phaser.Scene {
     }
     this.load.audio("jump-se", "assets/jump-se.mp3");
     this.load.audio("throw-se", "assets/throw-se.mp3");
+    this.load.audio("get-se", "assets/get-se.mp3");
+    this.load.audio("fail-se", "assets/fail-se.mp3");
   }
   restart() {
     for (const e of this.lives) {
@@ -113,6 +119,8 @@ export class GameMain extends Phaser.Scene {
     this.prepareStart();
     this.jumpSE = this.sound.add("jump-se");
     this.throwSE = this.sound.add("throw-se");
+    this.getSE = this.sound.add("get-se");
+    this.failSE = this.sound.add("fail-se");
   }
   showP(ix: integer) {
     for (let i = 0; i < this.p.length; i++) {
@@ -195,6 +203,7 @@ export class GameMain extends Phaser.Scene {
       this.lives[this.failCount] = this.add.sprite(old.x, old.y, "fail");
       old.destroy();
       this.failCount++;
+      this.failSE?.play();
       if (this.lives.length <= this.failCount) {
         this.prepareGaveOver();
       } else {
@@ -306,6 +315,7 @@ export class GameMain extends Phaser.Scene {
     const stars = this.stars!
     stars.setPosition(x, y);
     stars.visible = true;
+    this.getSE!.play();
     this.ta!.visible = false
     this.showP(2);
     this.tick = 0;
