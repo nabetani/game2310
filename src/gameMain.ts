@@ -12,7 +12,7 @@ const Vec2 = (x: number, y: number): Vector2 => {
   return r;
 }
 
-type Audio = Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+type Audio = NoSound | Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
 
 const popCount = (x: integer): integer => {
   let r = 0;
@@ -36,6 +36,12 @@ class PhysObj {
     this.velo.y += this.dvy;
   }
 };
+
+class NoSound {
+  play() { }
+};
+
+const noSound = () => new NoSound();
 
 export class GameMain extends Phaser.Scene {
   p: Phaser.GameObjects.Sprite[] = [];
@@ -114,10 +120,17 @@ export class GameMain extends Phaser.Scene {
     const attr = { fontFamily: 'monospace', fontSize: '40px' };
     this.scoreText = this.add.text(10, 100, "", attr);
     this.prepareStart();
-    this.jumpSE = this.sound.add("jump-se");
-    this.throwSE = this.sound.add("throw-se");
-    this.getSE = this.sound.add("get-se");
-    this.failSE = this.sound.add("fail-se");
+    if (Settings.S.soundOn) {
+      this.jumpSE = this.sound.add("jump-se");
+      this.throwSE = this.sound.add("throw-se");
+      this.getSE = this.sound.add("get-se");
+      this.failSE = this.sound.add("fail-se");
+    } else {
+      this.jumpSE = noSound();
+      this.throwSE = noSound();
+      this.getSE = noSound();
+      this.failSE = noSound();
+    }
   }
   showP(ix: integer) {
     for (let i = 0; i < this.p.length; i++) {
