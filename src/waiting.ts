@@ -62,6 +62,13 @@ export class Wating extends Phaser.Scene {
       rules[0].setVisible(false);
       rules[1].setVisible(true);
     });
+    const github = this.addText(
+      'Source code and license',
+      Settings.bgSize.x - 50, Settings.bgSize.y * 0.9, 1,
+      "16px");
+    github.on('pointerdown', () => {
+      window.location.href = 'https://github.com/nabetani/game2310/';
+    });
   }
   update() {
   }
