@@ -19,6 +19,16 @@ export class Wating extends Phaser.Scene {
     return text;
   }
 
+  link(msg: string, url: string, yratio: number) {
+    const text = this.addText(
+      msg,
+      Settings.bgSize.x - 50, Settings.bgSize.y * yratio, 1,
+      "16px");
+    text.on('pointerdown', () => {
+      window.location.href = url;
+    });
+  }
+
   create() {
     this.add.image(Settings.bgSize.x / 2, Settings.bgSize.y / 2, 'bg');
     let soundOn = this.add.sprite(Settings.bgSize.x - 100, 50, "sound_on");
@@ -78,13 +88,9 @@ export class Wating extends Phaser.Scene {
       rules[0].setVisible(false);
       rules[1].setVisible(true);
     });
-    const github = this.addText(
-      'Source code and license',
-      Settings.bgSize.x - 50, Settings.bgSize.y * 0.9, 1,
-      "16px");
-    github.on('pointerdown', () => {
-      window.location.href = 'https://github.com/nabetani/game2310/';
-    });
+    this.link('鍋谷武典 @ タイッツー', 'https://taittsuu.com/users/nabetani', 0.85);
+    this.link('タイッツー #JumpDown', 'https://taittsuu.com/search/taiitsus/hashtags?query=JumpDown', 0.9);
+    this.link('Source code and license', 'https://github.com/nabetani/game2310/', 0.95);
   }
   update() {
   }
