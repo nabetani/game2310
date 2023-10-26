@@ -12,7 +12,7 @@ const Vec2 = (x: number, y: number): Vector2 => {
   return r;
 }
 
-type Audio = Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+type Audio = NoSound | Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
 
 const popCount = (x: integer): integer => {
   let r = 0;
@@ -36,6 +36,12 @@ class PhysObj {
     this.velo.y += this.dvy;
   }
 };
+
+class NoSound {
+  play() { }
+};
+
+const noSound = () => new NoSound();
 
 export class GameMain extends Phaser.Scene {
   p: Phaser.GameObjects.Sprite[] = [];
@@ -114,10 +120,17 @@ export class GameMain extends Phaser.Scene {
     const attr = { fontFamily: 'monospace', fontSize: '40px' };
     this.scoreText = this.add.text(10, 100, "", attr);
     this.prepareStart();
-    this.jumpSE = this.sound.add("jump-se");
-    this.throwSE = this.sound.add("throw-se");
-    this.getSE = this.sound.add("get-se");
-    this.failSE = this.sound.add("fail-se");
+    if (Settings.S.soundOn) {
+      this.jumpSE = this.sound.add("jump-se");
+      this.throwSE = this.sound.add("throw-se");
+      this.getSE = this.sound.add("get-se");
+      this.failSE = this.sound.add("fail-se");
+    } else {
+      this.jumpSE = noSound();
+      this.throwSE = noSound();
+      this.getSE = noSound();
+      this.failSE = noSound();
+    }
   }
   showP(ix: integer) {
     for (let i = 0; i < this.p.length; i++) {
@@ -189,33 +202,61 @@ export class GameMain extends Phaser.Scene {
       }
     }
   }
+  rankText() {
+    if (this.score == 0) {
+      return "Nice try!";
+    }
+    const name = (): string | null => {
+      return [
+        "a Beginner",
+        "a Novice",
+        "an Apprentice",
+        "a Good Player",
+        "a Very Good Player",
+        "an Advanced Player",
+        "a Super Advanced Player",
+        "an Incredible Player",
+        "a Master",
+        "a Hero",
+        "a Super Hero",
+      ][((this.score || 0) / 4) | 0];
+    }
+    let n = name();
+    return n ? `You are ${n}` : "Are you a human being?";
+  }
   prepareGaveOver() {
     this.tick = 0;
     this.pointerdown = () => { };
     this.pointerup = () => { };
     this.taProc = () => { };
     this.graphics!.clear();
-    const msg = 'Game Over';
-    const attr = { fontFamily: 'arial', fontSize: '60px' };
-    let gameOverText = this.add
-      .text(Settings.bgSize.x / 2, Settings.bgSize.y / 2, msg, attr)
-      .setOrigin(0.5);
+    const attr = { fontFamily: 'arial', fontSize: '50px' };
+    let texts = [
+      this.add
+        .text(Settings.bgSize.x * 0.5, Settings.bgSize.y * 0.4, 'Game Over', attr)
+        .setOrigin(0.5),
+      this.add
+        .text(Settings.bgSize.x * 0.5, Settings.bgSize.y * 0.6, this.rankText(), attr)
+        .setOrigin(0.5),
+    ];
     this.playerProc = () => {
       if (60 < this.tick) {
-        this.prepareRepayPrompt(gameOverText);
+        this.prepareRepayPrompt(texts);
       }
     }
   }
-  prepareRepayPrompt(gameOverText: Phaser.GameObjects.Text) {
+  prepareRepayPrompt(texts: Phaser.GameObjects.Text[]) {
     const msg = 'Click to try again.';
     const attr = { fontFamily: 'arial', fontSize: '40px' };
     this.playerProc = () => { };
     let replayText = this.add
-      .text(Settings.bgSize.x / 2, Settings.bgSize.y / 2 + 100, msg, attr)
+      .text(Settings.bgSize.x * 0.5, Settings.bgSize.y * 0.8, msg, attr)
       .setOrigin(0.5);
     this.pointerdown = () => {
       replayText.destroy();
-      gameOverText.destroy();
+      for (let t of texts) {
+        t.destroy();
+      }
       this.restart();
     };
   }

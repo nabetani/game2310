@@ -6,7 +6,9 @@ export class Wating extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('bg', 'assets/bg.png');
+    for (const n of ["bg", "sound_on", "sound_off"]) {
+      this.load.image(n, `assets/${n}.png`);
+    }
   }
 
   addText(msg: string, x: number, y: number, org: number, fontSize: string): Phaser.GameObjects.Text {
@@ -17,8 +19,32 @@ export class Wating extends Phaser.Scene {
     return text;
   }
 
+  link(msg: string, url: string, yratio: number) {
+    const text = this.addText(
+      msg,
+      Settings.bgSize.x - 50, Settings.bgSize.y * yratio, 1,
+      "16px");
+    text.on('pointerdown', () => {
+      window.location.href = url;
+    });
+  }
+
   create() {
     this.add.image(Settings.bgSize.x / 2, Settings.bgSize.y / 2, 'bg');
+    let soundOn = this.add.sprite(Settings.bgSize.x - 100, 50, "sound_on");
+    const soundScale = 0.6;
+    soundOn.setScale(soundScale);
+    soundOn.on("pointerdown", () => {
+      soundOn.setScale(1);
+      soundOff.setScale(soundScale);
+      Settings.S.soundOn = true;
+    }).setInteractive();
+    let soundOff = this.add.sprite(Settings.bgSize.x - 50, 50, "sound_off");
+    soundOff.on("pointerdown", () => {
+      soundOn.setScale(soundScale);
+      soundOff.setScale(1);
+      Settings.S.soundOn = false;
+    }).setInteractive();
     const msg = 'Click here to start game.';
     const attr = { fontFamily: 'arial', fontSize: '60px' };
     this.addText(
@@ -62,6 +88,9 @@ export class Wating extends Phaser.Scene {
       rules[0].setVisible(false);
       rules[1].setVisible(true);
     });
+    this.link('鍋谷武典 @ タイッツー', 'https://taittsuu.com/users/nabetani', 0.85);
+    this.link('タイッツー #JumpDown', 'https://taittsuu.com/search/taiitsus/hashtags?query=JumpDown', 0.9);
+    this.link('Source code and license', 'https://github.com/nabetani/game2310/', 0.95);
   }
   update() {
   }
