@@ -39,6 +39,7 @@ class PhysObj {
 
 class NoSound {
   play() { }
+  stop() { }
 };
 
 const noSound = () => new NoSound();
@@ -66,6 +67,9 @@ export class GameMain extends Phaser.Scene {
   throwSE: Audio | null = null;
   getSE: Audio | null = null;
   failSE: Audio | null = null;
+  bgm: Audio | null = null;
+  gameoverSE: Audio | null = null;
+
   constructor() {
     super('GameMain');
   }
@@ -77,6 +81,8 @@ export class GameMain extends Phaser.Scene {
     this.load.audio("throw-se", "assets/throw-se.mp3");
     this.load.audio("get-se", "assets/get-se.mp3");
     this.load.audio("fail-se", "assets/fail-se.mp3");
+    this.load.audio("bgm", "assets/bgm7.m4a");
+    this.load.audio("gameover-se", "assets/gameover.m4a");
   }
   restart() {
     for (const e of this.lives) {
@@ -96,7 +102,28 @@ export class GameMain extends Phaser.Scene {
     }
     this.ta!.visible = false;
     this.playerProc = this.rise;
+    this.bgm!.play();
   }
+  setBGM() {
+    const conf: Phaser.Types.Sound.SoundConfig = {
+      loop: true,
+      seek: 0.022,
+      volume: 0.2,
+    };
+    if (Settings.S.soundOn) {
+      this.bgm = this.sound.add("bgm", conf);
+    } else {
+      this.bgm = noSound();
+    }
+  }
+
+  addSound(name: string): Audio {
+    return Settings.S.soundOn
+      ? this.sound.add(name)
+      : noSound();
+  }
+
+
   create() {
     this.add.image(Settings.bgSize.x / 2, Settings.bgSize.y / 2, 'game_bg');
     let staticGroup = this.physics.add.staticGroup();
@@ -119,18 +146,13 @@ export class GameMain extends Phaser.Scene {
 
     const attr = { fontFamily: 'monospace', fontSize: '40px' };
     this.scoreText = this.add.text(10, 100, "", attr);
+    this.setBGM();
+    this.jumpSE = this.addSound("jump-se");
+    this.throwSE = this.addSound("throw-se");
+    this.getSE = this.addSound("get-se");
+    this.failSE = this.addSound("fail-se");
+    this.gameoverSE = this.addSound("gameover-se");
     this.prepareStart();
-    if (Settings.S.soundOn) {
-      this.jumpSE = this.sound.add("jump-se");
-      this.throwSE = this.sound.add("throw-se");
-      this.getSE = this.sound.add("get-se");
-      this.failSE = this.sound.add("fail-se");
-    } else {
-      this.jumpSE = noSound();
-      this.throwSE = noSound();
-      this.getSE = noSound();
-      this.failSE = noSound();
-    }
   }
   showP(ix: integer) {
     for (let i = 0; i < this.p.length; i++) {
@@ -194,10 +216,10 @@ export class GameMain extends Phaser.Scene {
       this.lives[this.failCount] = this.add.sprite(old.x, old.y, "fail");
       old.destroy();
       this.failCount++;
-      this.failSE?.play();
       if (this.lives.length <= this.failCount) {
-        this.prepareGaveOver();
+        this.prepareGameOver();
       } else {
+        this.failSE?.play();
         this.prepareTa();
       }
     }
@@ -224,7 +246,9 @@ export class GameMain extends Phaser.Scene {
     let n = name();
     return n ? `You are ${n}` : "Are you a human being?";
   }
-  prepareGaveOver() {
+  prepareGameOver() {
+    this.gameoverSE!.play();
+    this.bgm!.stop();
     this.tick = 0;
     this.pointerdown = () => { };
     this.pointerup = () => { };
